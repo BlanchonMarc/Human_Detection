@@ -2,6 +2,7 @@
 from __future__ import print_function
 import argparse
 import cv2
+import os
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -13,4 +14,5 @@ detect = __import__("detect_human")
 if args["images"]:
     detect.__main__(args["images"])
 else:
-    detect.__main__(args["video"])
+    path = os.path.abspath(args["video"])
+    detect.__main__(path)

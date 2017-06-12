@@ -18,7 +18,7 @@ def draw_detections(img, rects, thickness=1):
         cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), thickness)
 
 
-def __main__(path):
+def __main__(path, body=False):
 
     t_bool = os.path.isdir(path)
     # print(t_bool)
@@ -32,13 +32,45 @@ def __main__(path):
             # load the image and resize it to (1) reduce detection time
             # and (2) improve detection accuracy
             image = cv2.imread(imagePath)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             if image is not None:
-                orig = image.copy()
-                # detect people in the image
-                (rects, weights) = hog.detectMultiScale(image, winStride=(2, 2), padding=(1, 1), scale=1.05)
 
-                # draw the original bounding boxes
-                draw_detections(image, rects)
+                if body is not False:
+                    # detect people in the image
+                    (rects, weights) = hog.detectMultiScale(image, winStride=(2, 2), padding=(1, 1), scale=1.05)
+
+                    # draw the original bounding boxes
+                    draw_detections(image, rects)
+
+                face_cascade = cv2.CascadeClassifier('detectors/haarcascade_frontalface_default.xml')
+                face_extended_cascade = cv2.CascadeClassifier('detectors/haarcascade_profileface.xml')
+                face_cascade_alt = cv2.CascadeClassifier('detectors/haarcascade_frontalface_alt.xml')
+                face_cascade_alt2 = cv2.CascadeClassifier('detectors/haarcascade_frontalface_alt2.xml')
+
+                faces = face_cascade.detectMultiScale(gray, 1.1, 1)
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 1)
+                    roi_gray = gray[y:y+h, x:x+w]
+                    roi_color = image[y:y+h, x:x+w]
+
+                faces_extended = face_extended_cascade.detectMultiScale(gray, 1.1, 1)
+                for (x, y, w, h) in faces_extended:
+                    cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 1)
+                    roi_gray = gray[y:y+h, x:x+w]
+                    roi_color = image[y:y+h, x:x+w]
+
+                faces_alt = face_cascade_alt.detectMultiScale(gray, 1.1, 1)
+                for (x, y, w, h) in faces_alt:
+                    cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 1)
+                    roi_gray = gray[y:y+h, x:x+w]
+                    roi_color = image[y:y+h, x:x+w]
+
+                faces_alt2 = face_cascade_alt2.detectMultiScale(gray, 1.1, 1)
+                for (x, y, w, h) in faces_alt2:
+                    cv2.rectangle(image, (x, y), (x+w, y+h), (255, 0, 0), 1)
+                    roi_gray = gray[y:y+h, x:x+w]
+                    roi_color = image[y:y+h, x:x+w]
+
                 cv2.imshow("Detection", image)
                 cv2.waitKey(0)
 
@@ -48,6 +80,7 @@ def __main__(path):
         cap = cv2.VideoCapture(path)
         while True:
             _, frame = cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             found, w = hog.detectMultiScale(frame, winStride=(8, 8), padding=(32, 32), scale=1.05)
             draw_detections(frame, found)
             cv2.imshow('feed', frame)
